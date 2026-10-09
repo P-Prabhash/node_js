@@ -1,12 +1,12 @@
 
 const { Pool } = require("pg");
-require("dotenv").config();
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: {
         rejectUnauthorized: true
-    }
+    },
+    connectionTimeoutMillis: 10000
 });
 
 async function connectDB() {
@@ -16,13 +16,14 @@ async function connectDB() {
         );
 
         console.log(
-            `PostgreSQL connected successfully: ${result.rows[0].database}`
+            "PostgreSQL connected successfully:",
+            result.rows[0].database
         );
     } catch (error) {
-        console.error("PostgreSQL connection failed");
-        console.error(error.message);
-
-        process.exit(1);
+        console.error("PostgreSQL connection failed:");
+        console.error("Code:", error.code);
+        console.error("Message:", error.message);
+        throw error;
     }
 }
 
@@ -30,7 +31,4 @@ function getDB() {
     return pool;
 }
 
-module.exports = {
-    connectDB,
-    getDB
-};
+module.exports = { connectDB, getDB };
