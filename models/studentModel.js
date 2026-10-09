@@ -1,22 +1,32 @@
+
 const { getDB } = require("../config/db");
 
 async function createStudent(student) {
-    const db = getDB();
+    const pool = getDB();
 
-    const result = await db.collection("students").insertOne(student);
+    const { name, email, age, course } = student;
 
-    return result;
+    const query = `
+        INSERT INTO students (name, email, age, course)
+        VALUES ($1, $2, $3, $4)
+        RETURNING *
+    `;
+
+    const values = [name, email, age, course];
+
+    const result = await pool.query(query, values);
+
+    return result.rows[0];
 }
 
 async function getStudents() {
-    const db = getDB();
+    const pool = getDB();
 
-    const students = await db
-        .collection("students")
-        .find()
-        .toArray();
+    const result = await pool.query(
+        "SELECT * FROM students ORDER BY id ASC"
+    );
 
-    return students;
+    return result.rows;
 }
 
 module.exports = {

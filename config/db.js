@@ -1,18 +1,25 @@
-const { MongoClient } = require("mongodb");
 
-const client = new MongoClient(process.env.MONGODB_URI);
+const { Pool } = require("pg");
+require("dotenv").config();
 
-let db;
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: true
+    }
+});
 
 async function connectDB() {
     try {
-        await client.connect();
+        const result = await pool.query(
+            "SELECT current_database() AS database"
+        );
 
-        db = client.db(process.env.DB_NAME);
-
-        console.log("MongoDB connected successfully");
+        console.log(
+            `PostgreSQL connected successfully: ${result.rows[0].database}`
+        );
     } catch (error) {
-        console.error("MongoDB connection failed");
+        console.error("PostgreSQL connection failed");
         console.error(error.message);
 
         process.exit(1);
@@ -20,7 +27,7 @@ async function connectDB() {
 }
 
 function getDB() {
-    return db;
+    return pool;
 }
 
 module.exports = {
